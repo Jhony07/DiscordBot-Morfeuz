@@ -12,9 +12,26 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=".", intents=intents)
 
 
+async def load_cogs():
+    if not os.path.exists("cogs"):
+        print("Diretório 'cogs' não encontrado.")
+        return
+    for file in os.listdir("cogs"):
+        if file.endswith(".py") and file != "__init__.py":
+            try:
+                await bot.load_extension(f"cogs.{file[:-3]}")
+                print(f"Carregado: {file}")
+            except commands.ExtensionAlreadyLoaded:
+                pass
+            except Exception as e:
+                print(f"Erro ao carregar {file}: {e}")
+
+
 @bot.event
 async def on_ready():
+    await load_cogs()
     print(f"Bot {bot.user} online ✅")
+
 
 @bot.event
 async def on_member_join(member: discord.Member):
@@ -33,11 +50,6 @@ async def on_member_remove(member: discord.Member):
 @bot.command()
 async def ola(ctx: commands.Context):
     await ctx.reply(f"Olá! {ctx.author.mention} Tudo bem?")
-
-
-@bot.command()
-async def falar(ctx: commands.Context, *, texto: str):
-    await ctx.send(texto)
 
 
 TOKEN = os.getenv("DISCORD_TOKEN")
