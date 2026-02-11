@@ -16,15 +16,21 @@ async def load_cogs():
     if not os.path.exists("cogs"):
         print("Diretório 'cogs' não encontrado.")
         return
-    for file in os.listdir("cogs"):
-        if file.endswith(".py") and file != "__init__.py":
-            try:
-                await bot.load_extension(f"cogs.{file[:-3]}")
-                print(f"Carregado: {file}")
-            except commands.ExtensionAlreadyLoaded:
-                pass
-            except Exception as e:
-                print(f"Erro ao carregar {file}: {e}")
+    for root, dirs, files in os.walk("cogs"):
+        for file in files:
+            if file.endswith(".py") and not file.startswith("__"):
+                filepath = os.path.join(root, file)
+                module_name = filepath.replace(os.path.sep, ".")[:-3]
+
+                try:
+                    loaded_count = len(bot.commands)
+                    await bot.load_extension(module_name)
+                    new_count = len(bot.commands) - loaded_count
+                    print(f"Carregado: {file} ({new_count} comandos)")
+                except commands.ExtensionAlreadyLoaded:
+                    pass
+                except Exception as e:
+                    print(f"Erro ao carregar {module_name}: {e}")
 
 
 @bot.event
